@@ -39,10 +39,73 @@ For each of the following prompts, produce responses _with_ code in-line. While 
 
 **You can minimize the training MSE by increasing the model flexibility, which means you can closely fit the model to the observations in the training sample. But when applying this estimated function with the minimized training MSE to the test set, the function might be tuned too specifically to the unique characteristics of the training set (i.e., "overfit") and it will generate a much larger *test* MSE than the smaller *training* MSE. Basically, the model only does well with the training set and because it too closely models those specific observations (*overfitting*) it can no longer do well in samples that are different from the training set.** 
 
-7. (10 points) Recall bootstrapping involves a process of drawing random samples of size $n$ through sampling *with* replacement. Create and plot two bootstrapped samples manually (i.e., *not using a function like `boot()`*). For reference, also plot the original data set to compare distributions. *Note:* When loading the data, you may simply drop the `NA`s, rather than impute, for ease. 
+
+7. (10 points) Recall bootstrapping involves a process of drawing random samples of size $n$ through sampling *with* replacement. Using the 2016 ANES data we've used a few times already, create and plot two bootstrapped samples manually (i.e., *not using a function like `boot()`*). For reference, also plot the original data set to compare distributions of feelings toward Trump (`fttrump`) versus feelings toward Obama (`ftobama`). *Note:* When loading the ANES data, you may simply drop the `NA`s, rather than impute, for ease (though in practice, this strategy isn't recommended).
+
+```{r echo=T, warning=F, message=F}
+library(tidyverse)
+library(here)
+library(ggplot2)
+
+anes <- read_csv(here("data", "anes_pilot_2016.csv")) %>% 
+  tibble::as_tibble() %>% 
+  na.omit() %>% 
+  select(fttrump, ftobama)
+  
+#creating two bootstrapped samples without using 'boot' function
+b1trump <- sample(anes$fttrump, replace = T)
+b1obama <- sample(anes$ftobama, replace = T)
+b1 <- data.frame(b1trump, b1obama)
+b2trump <- sample(anes$fttrump, replace = T)
+b2obama <- sample(anes$ftobama, replace = T)
+b2 <- data.frame(b2trump, b2obama)
+
+#plotting trump
+ggplot(anes, aes(fttrump)) + 
+  geom_histogram(fill = "black")+
+  labs(x= "Original - FTTrump",
+       title = "Original - Trump Distribution")+
+  ylim(0,20)
+
+ggplot(b1, aes(b1trump)) + 
+  geom_histogram(fill = "red")+
+  labs(x= "Bootstrap 1 - FTTrump",
+       title = "Bootstrap 1 - Trump Distribution")+
+  ylim(0,20)
+
+ggplot(b2, aes(b2trump)) + 
+  geom_histogram(fill = "orange")+
+  labs(x= "Bootstrap 2 - FTTrump",
+       title = "Bootstrap 2 - Trump Distribution")+
+  ylim(0,20)
+
+#plotting obama
+ggplot(anes, aes(ftobama)) + 
+  geom_histogram(fill = "gray")+
+  labs(x= "Original - FTObama",
+       title = "Original - Obama Distribution")+
+  ylim(0,20)
+
+ggplot(b1, aes(b1obama)) + 
+  geom_histogram(fill = "blue")+
+  labs(x= "Bootstrap 1 - FTObama",
+       title = "Bootstrap 1 - Obama Distribution")+
+  ylim(0,20)
+
+ggplot(b2, aes(b2trump)) + 
+  geom_histogram(fill = "green")+
+  labs(x= "Bootstrap 2 - FTObama",
+       title = "Bootstrap 2 - Obama Distribution")+
+  ylim(0,20)
+
+```
 
 8. (5 points) Discuss the distributions from the previous question. Do they look mostly similar as is expected by sampling with replacement? Why or why not, do you think? *Respond with a few sentences.*
 
+**They look mostly similar because the bootstrap samples are sampling from the original distribution in a small *n* sample. This means that if in the orginal ANES sample of only 88 observations many people had low (near 0) feelings towards the presidents then when taking a bootstapped sample with replacement there is greater probability of generating the bootstrapped sample observation with that value. By the same logic, the values for each variables that had few people with that level of feeling in the original set will also have a smaller chance of being selected in the bootstrapped samples. This means the bootstrapped samples' distributions will closely resemble the original sample's distribution.**
+
 9. (15 points) The median for feelings toward Obama (`ftobama`) is 39.5. Using a package or any function/method you'd like, bootstrap the standard error of our statistic of interest (which is the median in this case) based on 1000 draws from the data. You might consider writing a simple helper function to speed along the bootstrapping process, but this is up to you of course. Then, construct the 95% confidence interval around your bootstrapped estimate. Report your results and offer a few points of discussion. *Respond with a few sentences.*
+
+
 
 10. (10 points) How are bootstrapping and cross-validation approaches to resampling different? How are they similar? Why does any of this matter from both social science and computational modeling perspectives?
