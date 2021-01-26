@@ -106,6 +106,30 @@ ggplot(b2, aes(b2trump)) +
 
 9. (15 points) The median for feelings toward Obama (`ftobama`) is 39.5. Using a package or any function/method you'd like, bootstrap the standard error of our statistic of interest (which is the median in this case) based on 1000 draws from the data. You might consider writing a simple helper function to speed along the bootstrapping process, but this is up to you of course. Then, construct the 95% confidence interval around your bootstrapped estimate. Report your results and offer a few points of discussion. *Respond with a few sentences.*
 
+```{r echo=T}
+library(boot)
 
+set.seed(1016)
+medFunc <- function(x, i){median(x[i])} #helper function to find median of 1000 bootstrapped samples
+bootMed <- boot(anes$ftobama, medFunc, 1000) #bootstrapped sample of 1000 medians
+plot(bootMed) # visual check to see if this makes sense
+
+boot.ci(bootMed)
+
+#trying another way to code the same thing to see if I did it right
+bootMed2 <- boot(anes$ftobama, statistic = function(x, i) median(x[i]), 1000)
+plot(bootMed2)
+bootMed2
+boot.ci(bootMed2)
+
+```
+
+**For ease of viewing, I'll just describe and reference the last sample (*bootMed2*) printed directly above. The differences between the Normal and Basic 95% CIs indicate that the bootstrapped sample is not perfectly normally distributed. Both of the CIs indicate there Obama's FT true population median could be anywhere from approximately 10-65. The standard error allows us to calculate this range, and the beauty of the bootstrap method is that we can calculate this standard deviation of the distribution (standard error) from just our single original sample. Without this resampling technique we wouldn't be able to test with any statistically meaningful backing if a median of another single sample was likely to be representative of the true population.**
 
 10. (10 points) How are bootstrapping and cross-validation approaches to resampling different? How are they similar? Why does any of this matter from both social science and computational modeling perspectives?
+
+**Different**: Bootstrapping selects *with* replacement, meaning some of the observations in the original data sample will not be represented in the bootstrapped sample. This ends up reducing the variance, but increasing bias. Cross-validation selects *without* replacement, meaning all the observations in the original data sample will show up in the smaller sets derived from the original. This ends up reducing the bias, but increasing the variance (the opposite of bootstrapping). Cross-validation is typically used for evaluating a model's performance or for comparing flexibility, while bootstrapping is more commonly used for determining the uncertainty of a model.
+
+**Similar**: Both resampling techniques are used to help test and evaluate different statistical models. They both use repeated sampling to help ascertain more information about a fitted model that we would otherwise be unable to determine without obtaining an entirely new sample.
+
+**Why does this matter**: The social sciences study the social world, and as such, obtaining accurate and reliable measures of behaviors or thoughts of interest are often incredibly expensive (time, resources, etc.). Obtaining a full population measure of anything is impossible. Therefore, we have to rely on samples of the population, which as I mentioned, are very costly to collect for financial reasons but also because some variables of interest are difficult to measure and some populations are hard to reach. These resampling techniques make the samples social scientists ARE able to collect much more statistically useful, as both the cross-validation and bootstrapping methods extend our abilities to inch closer to a more accurate understanding of what might actually might happening in our true population of interest. 
